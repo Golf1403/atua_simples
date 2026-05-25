@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  sei-spa:
+    container_name: sei-spa
+    image: sei-spa
+    stdin_open: true
+    tty: true
+    entrypoint: sh -c "yarn && yarn start"
+    environment:
+      AWS_PROFILE: $AWS_PROFILE
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/sei-spa
+      - ~/.aws/credentials:/root/.aws/credentials
+    restart: always

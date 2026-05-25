@@ -1,0 +1,8 @@
+export enum dateFormatEnum {
+  DEFAULT = 'DD/MM/YYYY',
+  AMERICAN_DATE = 'YYYY-MM-DD',
+  ONE_DAY = '01/MM/YYYY',
+  PT_BR_HH_MM_SS = 'YYYY-MM-DD HH:mm:ss',
+  MONTH_AND_YEAR = 'MM/YYYY',
+  MONTH_AND_YEAR_EXTENSE = 'MMM/YYYY',
+}

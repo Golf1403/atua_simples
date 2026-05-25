@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "downlevelIteration": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": false,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "useUnknownInCatchVariables": false,
+    "jsx": "react-jsx",
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["./*"],
+      "@data/*": ["data/*"],
+      "@enums/*": ["enums/*"],
+      "@Routes/*": ["Routes/*"],
+      "@styles/*": ["styles/*"],
+      "@services/*": ["services/*"],
+      "@components/*": ["components/*"],
+      "@pages/*": ["pages/*"],
+      "@validators/*": ["validators/*"],
+      "@lib/*": ["lib/*"],
+      "@store/*": ["store/*"],
+      "@interfaces/*": ["interfaces/*"],
+      "@utils/*": ["utils/*"]
+    }
+  },
+  "include": ["src", "__tests__"],
+  "exclude": ["types"]
+}

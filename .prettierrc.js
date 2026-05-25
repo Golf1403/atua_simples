@@ -1,0 +1,15 @@
+module.exports = {
+  printWidth: 120,
+  useTabs: false,
+  trailingComma: 'es5',
+  tabWidth: 2,
+  semi: true,
+  singleQuote: true,
+  bracketSpacing: true,
+  bracketSameLine: true,
+  arrowParens: 'avoid',
+  endOfLine: 'lf',
+  importOrder: ['^components/(.*)$', '^[./]'],
+  importOrderSeparation: true,
+  importOrderSortSpecifiers: true,
+};

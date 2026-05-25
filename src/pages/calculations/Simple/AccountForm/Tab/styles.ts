@@ -1,0 +1,217 @@
+import {
+  coloraero,
+  colorbabyponder,
+  colorgray80,
+  colorlightblue,
+  colorwhite,
+  desktopxxl,
+  fontlg,
+  fontsm,
+  fontxl,
+  linesm,
+  rem,
+} from '@/styles/global';
+import { css, styled } from 'styled-components';
+
+export const TitleContainer = styled.button<{ $checkbox?: boolean }>`
+  background-color: ${props => (props.$checkbox ? coloraero : 'transparent')};
+  color: ${props => (props.$checkbox ? colorwhite : 'inherit')};
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flex;
+  display: -o-flex;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  max-width: ${props => (props.$checkbox ? rem(280) : rem(300))};
+  min-width: ${props => (props.$checkbox ? rem(280) : rem(320))};
+  width: 100%;
+  height: ${rem(43)};
+  border-radius: ${props => (props.$checkbox ? rem(50) : '0')};
+  padding: ${props => (props.$checkbox ? `0 ${rem(10)}` : '0')};
+  border: 0;
+  font-weight: ${props => (props.$checkbox ? 'bold' : 'normal')};
+  font-size: ${props => (props.$checkbox ? fontlg : 'inherit')};
+
+  &:focus {
+    color: ${coloraero};
+    font-weight: bold;
+    scale: 1.02;
+    border: ${`${rem(2)} solid ${colorlightblue}`};
+    padding: ${rem(3)};
+    border-radius: ${rem(40)};
+  }
+
+  @media (max-width: ${desktopxxl}) {
+    max-width: ${rem(300)};
+    min-width: ${rem(100)};
+  }
+`;
+export const NumberContainer = styled.div`
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flex;
+  display: -o-flex;
+  display: flex;
+  -webkit-justify-content: flex-end;
+  -moz-justify-content: flex-end;
+  -ms-justify-content: flex-end;
+  justify-content: flex-end;
+  align-items: center;
+`;
+
+export const ResultInfoContainer = styled.div<{ $width?: number }>`
+  font-size: ${fontlg};
+  line-height: ${linesm};
+  padding-left: ${rem(24)};
+  color: ${coloraero};
+  font-weight: bold;
+  width: ${props => props.$width && `${props.$width}%`};
+
+  svg {
+    font-size: ${fontxl};
+  }
+
+  @media (max-width: ${desktopxxl}) {
+    font-size: ${fontsm};
+  }
+`;
+
+export const ResultContainer = styled.div`
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flex;
+  display: -o-flex;
+  display: flex;
+  -webkit-justify-content: flex-end;
+  -moz-justify-content: flex-end;
+  -ms-justify-content: flex-end;
+  justify-content: flex-end;
+  align-items: center;
+  -webkit-box-flex: 1;
+  -moz-flex: 1;
+  -webkit-flex: 1;
+  flex: 1;
+
+  input {
+    background-color: transparent;
+    &:focus {
+      color: ${coloraero};
+      font-weight: bold;
+    }
+  }
+`;
+export const ResultTitleContainer = styled.button`
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: ${rem(4)};
+  font-size: ${rem(12)};
+  white-space: nowrap;
+  color: ${coloraero};
+  min-width: ${rem(180)};
+  text-align: right;
+
+  .result-icon {
+    font-size: ${rem(16)};
+  }
+
+  &:focus {
+    border-color: ${colorbabyponder};
+    color: ${coloraero};
+    font-weight: bold;
+    scale: 1.2;
+    border: ${`${rem(2)} solid ${colorlightblue}`};
+    padding: ${rem(3)};
+    border-radius: ${rem(40)};
+  }
+`;
+export const Container = styled.div<{ $visibility: boolean }>`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: ${fontxl};
+  margin-bottom: ${rem(48)};
+  overflow: visible;
+
+  ${props =>
+    props.$visibility &&
+    css`
+      border: 1px solid ${colorgray80};
+      box-shadow: 0 0 ${rem(8)} rgba(0, 0, 0, 0.2);
+      background-color: ${colorwhite};
+    `}
+`;
+
+export const CheckboxContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin-right: ${rem(8)};
+`;
+export const ChildrenContainer = styled.div<{ $visibility: boolean }>`
+  display: ${props => (props.$visibility ? 'flex' : 'none')};
+  overflow: hidden;
+  padding: ${fontxl};
+`;
+export const Header = styled.div`
+  position: absolute;
+  top: -${rem(28)};
+  width: 100%;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flex;
+  display: -o-flex;
+  display: flex;
+  align-items: center;
+  label,
+  input {
+    color: ${coloraero};
+    font-size: ${fontxl};
+    font-weight: bold;
+    text-align: end;
+  }
+`;
+
+export const HeaderContainer = styled.div`
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flex;
+  display: -o-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  -moz-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  position: relative;
+`;
+export const HorizontalLine = styled.div<{ $visibility: boolean }>`
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flex;
+  display: -o-flex;
+  display: flex;
+  -webkit-justify-content: flex-start;
+  -moz-justify-content: flex-start;
+  -ms-justify-content: flex-start;
+  justify-content: flex-start;
+  align-items: center;
+  gap: ${rem(8)};
+  min-width: 0;
+  width: 100%;
+  ${props =>
+    !props.$visibility &&
+    css`
+      border-bottom: 2px solid ${colorgray80};
+    `}
+  margin-bottom: ${rem(8)};
+`;
