@@ -16,6 +16,7 @@ import {
   Title,
 } from './styles';
 import InterestConfigModal from './ConfigModal';
+import { formatDateInput, selectInputValue } from '../dateInputUtils';
 
 export interface InterestModalValues {
   type: string;
@@ -59,7 +60,12 @@ const InterestModal = ({ isOpen, initialValues, onClose, onConfirm, onConfig }: 
   const updateValue = (field: keyof InterestModalValues, value: string) => {
     setValues(current => ({
       ...current,
-      [field]: field === 'percentage' ? Number(value.replace(',', '.')) || 0 : value,
+      [field]:
+        field === 'percentage'
+          ? Number(value.replace(',', '.')) || 0
+          : field === 'dateStart' || field === 'dateEnd'
+          ? formatDateInput(value)
+          : value,
     }));
   };
 
@@ -104,14 +110,24 @@ const InterestModal = ({ isOpen, initialValues, onClose, onConfirm, onConfig }: 
           <Field>
             De
             <DateInputWrap>
-              <Input value={values.dateStart || ''} onChange={event => updateValue('dateStart', event.target.value)} />
+              <Input
+                value={values.dateStart || ''}
+                maxLength={10}
+                onFocus={selectInputValue}
+                onChange={event => updateValue('dateStart', event.target.value)}
+              />
               <FaCalendarAlt />
             </DateInputWrap>
           </Field>
           <Field>
             Até
             <DateInputWrap>
-              <Input value={values.dateEnd || ''} onChange={event => updateValue('dateEnd', event.target.value)} />
+              <Input
+                value={values.dateEnd || ''}
+                maxLength={10}
+                onFocus={selectInputValue}
+                onChange={event => updateValue('dateEnd', event.target.value)}
+              />
               <FaCalendarAlt />
             </DateInputWrap>
           </Field>

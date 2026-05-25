@@ -16,6 +16,7 @@ import {
   Title,
 } from './styles';
 import FineConfigModal from './ConfigModal';
+import { formatDateInput, selectInputValue } from '../dateInputUtils';
 
 export interface FineModalValues {
   periodicity: string;
@@ -58,6 +59,8 @@ const FineModal = ({ isOpen, initialValues, onClose, onConfirm }: FineModalProps
       [field]:
         field === 'percentage' || field === 'value'
           ? Number(value.replace(',', '.')) || 0
+          : field === 'dateStart' || field === 'dateEnd'
+          ? formatDateInput(value)
           : (value as FineModalValues[keyof FineModalValues]),
     }));
   };
@@ -100,14 +103,24 @@ const FineModal = ({ isOpen, initialValues, onClose, onConfirm }: FineModalProps
           <Field>
             De
             <DateInputWrap>
-              <Input value={values.dateStart || ''} onChange={event => updateValue('dateStart', event.target.value)} />
+              <Input
+                value={values.dateStart || ''}
+                maxLength={10}
+                onFocus={selectInputValue}
+                onChange={event => updateValue('dateStart', event.target.value)}
+              />
               <FaCalendarAlt />
             </DateInputWrap>
           </Field>
           <Field>
             Até
             <DateInputWrap>
-              <Input value={values.dateEnd || ''} onChange={event => updateValue('dateEnd', event.target.value)} />
+              <Input
+                value={values.dateEnd || ''}
+                maxLength={10}
+                onFocus={selectInputValue}
+                onChange={event => updateValue('dateEnd', event.target.value)}
+              />
               <FaCalendarAlt />
             </DateInputWrap>
           </Field>

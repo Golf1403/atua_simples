@@ -7,6 +7,7 @@ import {
   ExpenseAction,
   HeaderContainer,
   DescriptionContainer,
+  CorrectedContainer,
 } from './styles';
 import useSimpleUpdate from '@/hooks/simpleUpdate';
 import { Formik } from 'formik';
@@ -36,9 +37,9 @@ const ExpenseList = (): JSX.Element => {
             <InputContainer>
               <label>{labelsEnum.VALUE}</label>
             </InputContainer>
-            <InputContainer>
+            <CorrectedContainer>
               <label>Corrigido</label>
-            </InputContainer>
+            </CorrectedContainer>
             <ExpenseAction>{labelsEnum.ACTIONS}</ExpenseAction>
           </HeaderContainer>
           <div

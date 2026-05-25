@@ -95,6 +95,14 @@ export const FactorsHookProvider = ({ children }: { children: React.ReactElement
 
   const getallMemcalcs = async () => {
     let key = '';
+    const loadLocalMemcalcs = async () => {
+      const response = await fetch(`${process.env.PUBLIC_URL || ''}/memcalcs.json`);
+      if (!response.ok) throw new Error('local memcalcs not found');
+
+      const jsonData = await response.json();
+      setallMemcalcs(jsonData);
+    };
+
     try {
       key = `memcalcs.json`;
 
@@ -114,6 +122,11 @@ export const FactorsHookProvider = ({ children }: { children: React.ReactElement
       }
     } catch (error) {
       console.log(error);
+      try {
+        await loadLocalMemcalcs();
+      } catch (localError) {
+        console.log(localError);
+      }
     }
   };
 

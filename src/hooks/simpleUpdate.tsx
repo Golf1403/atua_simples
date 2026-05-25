@@ -8,8 +8,12 @@ import {
   selectInterestFine,
   typeExpenseSection,
   typeFee,
+  typeFine,
+  typeInterest,
+  typeCorrection,
   typeinstallment,
   typePayment,
+  typeTotal,
 } from './interfaces/CurrentAccountHookImp';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '@/store';
@@ -44,10 +48,15 @@ import CalculationsResponseImp from '@/interfaces/serviceResponses/CalculationsR
 import { ListAccountsByTypeIdImp } from '@/services/AccountServices';
 import CurrentAuthorImp from '@/interfaces/calculations/CurrentAuthorImp';
 import { help as defaultHelp } from '@/data/calculations/help';
-import { SummaryImp } from '@/interfaces/calculations/ViewOccorrenceImp';
+import ViewOccorrenceImp, { SummaryImp } from '@/interfaces/calculations/ViewOccorrenceImp';
 import { CurrentTypes } from '@/data/calculations/currentTypes';
 import moment from 'moment';
 import { dateFormatEnum } from '@/enums/DateFormatEnum';
+import INomenclature from '@/interfaces/NomenclatureImp';
+import { fineAmountType } from '@/data/calculations/fineEntryTypes';
+import { getCoin } from '@/utils/numberUtils';
+import IndexesService from '@/services/IndexesService';
+import MemCalcImp from '@/interfaces/MemCalcImp';
 
 export const initialFeeFines = { list: [], total: 0 };
 
@@ -178,6 +187,238 @@ const clearAuthorNewestFlags = (author: CurrentAuthorImp): CurrentAuthorImp =>
     fees: clearNewestFlags(author.fees || []),
   } as CurrentAuthorImp);
 
+const toCalculationNumber = (value: any) => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  if (value === null || value === undefined || value === '') return 0;
+
+  const normalized = String(value)
+    .trim()
+    .replace(/[^\d,.-]/g, '');
+  if (!normalized) return 0;
+
+  const parsed = normalized.includes(',')
+    ? Number(normalized.replace(/\./g, '').replace(',', '.'))
+    : Number(normalized);
+
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const normalizeCalculatedNumberFields = <T extends Record<string, any>>(item: T, fields: string[]) =>
+  fields.reduce(
+    (currentItem, field) => ({
+      ...currentItem,
+      [field]: toCalculationNumber(currentItem[field]),
+    }),
+    item
+  );
+
+const mapOccurrenceInterestToInterestFine = (interest: any) => ({
+  ...interest,
+  type: typeInterest.id,
+  description: interest.type,
+  value: toCalculationNumber(interest.percentage),
+  tax: toCalculationNumber(interest.percentage),
+  percentage: toCalculationNumber(interest.percentage),
+  onTransitiveInterest: true,
+  calculated: toCalculationNumber(interest.calculated),
+  calculatedInfo: interest.calculatedInfo || {
+    periods: [],
+    result: 0,
+    value: 0,
+    totalPercentage: 0,
+    withoutTaxCorrection: false,
+  },
+});
+
+const mapOccurrenceFineToInterestFine = (fine: any) => {
+  const isAmount = fine.type === fineAmountType.id;
+  const value = isAmount ? toCalculationNumber(fine.value) : toCalculationNumber(fine.percentage);
+
+  return {
+    ...fine,
+    type: typeFine.id,
+    selectType: fine.type,
+    value,
+    tax: value,
+    percentage: toCalculationNumber(fine.percentage),
+    calculated: toCalculationNumber(fine.calculated),
+    calculatedInfo: fine.calculatedInfo || {
+      periods: [],
+      result: 0,
+      totalPercentage: 0,
+      value: 0,
+    },
+  };
+};
+
+const mapAuthorToCalculation = (currentAuthor: CurrentAuthorImp): CurrentAuthorImp => {
+  const occurrences = (currentAuthor.occurrences || []).map((occurrence: any) => ({
+    ...normalizeCalculatedNumberFields(occurrence, ['value', 'correctedValue', 'total', 'tax']),
+    interests: (occurrence.interests || []).map((interest: any) =>
+      normalizeCalculatedNumberFields(interest, ['value', 'percentage', 'calculated'])
+    ),
+    fines: (occurrence.fines || []).map((fine: any) =>
+      normalizeCalculatedNumberFields(fine, ['value', 'percentage', 'calculated'])
+    ),
+  }));
+  const fees = (currentAuthor.fees || []).map((fee: any) =>
+    normalizeCalculatedNumberFields(fee, ['value', 'correctedValue', 'total', 'tax', 'percentage', 'calculated'])
+  );
+  const expenses = (currentAuthor.expenses || []).map((expense: any) =>
+    normalizeCalculatedNumberFields(expense, ['value', 'correctedValue', 'total', 'tax'])
+  );
+  const occurrenceInterestFines = occurrences.flatMap((occurrence: any) => [
+    ...(occurrence.interests || []).map(mapOccurrenceInterestToInterestFine),
+    ...(occurrence.fines || []).map(mapOccurrenceFineToInterestFine),
+  ]);
+
+  return {
+    ...currentAuthor,
+    occurrences: [...occurrences, ...fees],
+    expenses,
+    interestFines: [...(currentAuthor.interestFines || []), ...occurrenceInterestFines],
+  } as CurrentAuthorImp;
+};
+
+const getBaseLineKey = (item: any) => `${item.type || ''}|${item.date || ''}|${item.description || ''}`;
+
+const findBaseViewIndex = (views: ViewOccorrenceImp[], item: any, startIndex: number) => {
+  const exactIndex = views.findIndex(
+    (view, index) => index >= startIndex && getBaseLineKey(view) === getBaseLineKey(item)
+  );
+  if (exactIndex >= 0) return exactIndex;
+
+  return views.findIndex((view, index) => index >= startIndex && view.type === item.type && view.date === item.date);
+};
+
+const getCorrectionValueUntilNextBase = (views: ViewOccorrenceImp[], baseIndex: number, correctedFrom: string) => {
+  if (baseIndex < 0) return 0;
+
+  let total = 0;
+
+  for (let index = baseIndex + 1; index < views.length; index++) {
+    const view = views[index];
+    const isNextBaseLine =
+      [typeinstallment.id, typePayment.id, typeExpenseSection.id, typeFee.id, typeTotal.id].includes(
+        view.type as any
+      ) && view.type !== typeCorrection.id;
+
+    if (isNextBaseLine) break;
+    if (view.type === typeCorrection.id && view.correctedFrom === correctedFrom) total += Number(view.value) || 0;
+  }
+
+  return total;
+};
+
+const applyCalculatedLineValues = (items: any[], views: ViewOccorrenceImp[]) => {
+  let viewStartIndex = 0;
+
+  return items.map(item => {
+    const baseIndex = findBaseViewIndex(views, item, viewStartIndex);
+    if (baseIndex < 0) return item;
+
+    viewStartIndex = baseIndex + 1;
+
+    const baseValue = toCalculationNumber(item.value);
+    const correctionValue = getCorrectionValueUntilNextBase(views, baseIndex, item.type);
+    const correctedValue = baseValue + correctionValue;
+
+    return { ...item, correctedValue, total: correctedValue, newestOccurrence: false };
+  });
+};
+
+const applyCalculatedFees = (items: any[], views: ViewOccorrenceImp[]) => {
+  let viewStartIndex = 0;
+
+  return items.map(item => {
+    const baseIndex = findBaseViewIndex(views, item, viewStartIndex);
+    if (baseIndex < 0) return item;
+
+    viewStartIndex = baseIndex + 1;
+
+    const view = views[baseIndex];
+    const calculated = toCalculationNumber(view.value) || toCalculationNumber(item.value);
+
+    return { ...item, calculated, correctedValue: calculated, total: calculated, newestOccurrence: false };
+  });
+};
+
+const splitViewsByAuthor = (views: ViewOccorrenceImp[]) => {
+  const groups: ViewOccorrenceImp[][] = [];
+  let currentGroup: ViewOccorrenceImp[] = [];
+
+  views.forEach(view => {
+    if (view.type === 'authors') {
+      if (currentGroup.length) groups.push(currentGroup);
+      currentGroup = [];
+      return;
+    }
+
+    currentGroup.push(view);
+  });
+
+  if (currentGroup.length) groups.push(currentGroup);
+
+  return groups;
+};
+
+const getMemCalcDate = (row: any) => row?.inadata || row?.date || row?.data || row?.createdAt || '';
+
+const getMemCalcsMaxDate = (memcalcs: MemCalcImp[]) => {
+  let maxDate: moment.Moment | null = null;
+
+  memcalcs.forEach((memcalc: any) => {
+    (memcalc?.indicadorDado || []).forEach((row: any) => {
+      const currentDate = moment(
+        getMemCalcDate(row),
+        ['YYYY-MM-DD HH:mm:ss.SSSSSS', 'YYYY-MM-DD', dateFormatEnum.DEFAULT],
+        true
+      );
+      if (currentDate.isValid() && (!maxDate || currentDate.isAfter(maxDate))) maxDate = currentDate;
+    });
+  });
+
+  return maxDate;
+};
+
+const getAuthorStartDate = (authors: CurrentAuthorImp[]) => {
+  const dates = authors
+    .flatMap((currentAuthor: any) => [
+      ...(currentAuthor?.occurrences || []),
+      ...(currentAuthor?.expenses || []),
+      ...(currentAuthor?.fees || []),
+    ])
+    .map((item: any) => moment(item.date, dateFormatEnum.DEFAULT, true))
+    .filter(date => date.isValid());
+
+  const startDate = dates.reduce<moment.Moment | null>((smallerDate, date) => {
+    if (!smallerDate || date.isBefore(smallerDate)) return date;
+    return smallerDate;
+  }, null);
+
+  return (startDate || moment('01/01/1964', dateFormatEnum.DEFAULT)).format(dateFormatEnum.DEFAULT);
+};
+
+const mapCalculatedAuthorToSimple = (
+  calculatedAuthor: CurrentAuthorImp,
+  originalAuthor: CurrentAuthorImp,
+  authorViews: ViewOccorrenceImp[]
+) => {
+  const calculatedOccurrences = calculatedAuthor.occurrences || [];
+  const occurrences = calculatedOccurrences.filter((occurrence: any) => occurrence.type !== typeFee.id);
+  const feesFromOccurrences = calculatedOccurrences.filter((occurrence: any) => occurrence.type === typeFee.id);
+  const fees = feesFromOccurrences.length ? feesFromOccurrences : originalAuthor.fees || [];
+
+  return {
+    ...originalAuthor,
+    ...calculatedAuthor,
+    occurrences: applyCalculatedLineValues(occurrences, authorViews),
+    expenses: applyCalculatedLineValues(calculatedAuthor.expenses || originalAuthor.expenses || [], authorViews),
+    fees: applyCalculatedFees(fees, authorViews),
+    interestFines: originalAuthor.interestFines || [],
+  } as CurrentAuthorImp;
+};
+
 export const authorRow = {
   authorIndex: 0,
   currency: 'R$',
@@ -227,7 +468,7 @@ export const SimpleUpdateHookProvider = ({ children }: { children: JSX.Element }
   const dispatch = useDispatch();
   const alertMessage = alertMessages();
   const simpleState = useSelector((state: ApplicationState) => state.simple);
-  const { indexesOptions } = useFactors();
+  const { allMemcalcs, indexesOptions, interestIndexes, interestIndexesFromLaw, memcalcs: memCalcs } = useFactors();
   const { accountConditions } = useResource();
 
   const [account, setAccount] = useState<CurrentAccountImp>({ list: [] } as unknown as CurrentAccountImp);
@@ -1169,6 +1410,144 @@ export const SimpleUpdateHookProvider = ({ children }: { children: JSX.Element }
     [dispatch]
   );
 
+  const onCalc = useCallback(
+    async ({
+      origin,
+      nomenclatures,
+      memcalcs,
+    }: {
+      origin: 'view' | 'calc';
+      nomenclatures: INomenclature[];
+      memcalcs?: MemCalcImp[];
+    }) => {
+      try {
+        const currentAccount = {
+          ...account,
+          current: {
+            ...account.current,
+            updateTo: account.current?.updateTo || moment().format(dateFormatEnum.DEFAULT),
+            proRataDay: Boolean(account.current?.proRataDay),
+          },
+          infos: {
+            ...account.infos,
+            type: account.infos?.type || typeArt354.id,
+          },
+        };
+        const calculationAuthors = {
+          ...author,
+          list: (author.list || []).map(mapAuthorToCalculation),
+        };
+        const indexId = Number(currentAccount.current?.indexId);
+        let calculationMemCalcs: MemCalcImp[] = [];
+
+        if (indexId && indexId !== -1) {
+          try {
+            const startDate = getAuthorStartDate(author.list || []);
+            const { memCalcs: currentMemCalcs } = await new IndexesService().getMemCalcs(
+              startDate,
+              currentAccount.current.updateTo,
+              indexId
+            );
+            calculationMemCalcs = currentMemCalcs || [];
+          } catch (error) {
+            console.log(error);
+            const fallbackMemCalcs = memcalcs || allMemcalcs?.[indexId] || memCalcs || [];
+            const fallbackMaxDate = getMemCalcsMaxDate(fallbackMemCalcs);
+            const updateTo = moment(currentAccount.current.updateTo, dateFormatEnum.DEFAULT, true);
+            const canUseFallback =
+              fallbackMaxDate && updateTo.isValid() && moment(fallbackMaxDate).isSameOrAfter(updateTo, 'day');
+
+            if (!canUseFallback) {
+              throw 'Não foi possível carregar os índices atualizados do banco. O cálculo não será feito com índices defasados.';
+            }
+
+            calculationMemCalcs = fallbackMemCalcs;
+          }
+        } else {
+          calculationMemCalcs = memcalcs || memCalcs || [];
+        }
+
+        await new Promise<void>((resolve, reject) => {
+          const worker = new Worker(new URL('../workersweb/RecalculateAccountWorker.ts', import.meta.url));
+          setLayout(layout => ({ ...layout, footerButton: { ...layout.footerButton, isLoading: true } }));
+
+          worker.addEventListener('message', event => {
+            try {
+              const message = event.data;
+              if (message.type == 'error') throw message?.data || 'Houve um erro ao calcular!';
+              if (message.type !== 'recalculated') throw 'Houve um erro ao calcular!';
+
+              const { authorList: calculatedAuthorList, views, summary } = message.data;
+              const currency = getCoin(currentAccount.current.updateTo, 0);
+              const authorViews = splitViewsByAuthor(views || []);
+              const nextAuthorList = (calculatedAuthorList || []).map(
+                (calculatedAuthor: CurrentAuthorImp, index: number) =>
+                  mapCalculatedAuthorToSimple(calculatedAuthor, author.list[index], authorViews[index] || [])
+              );
+
+              setSummary(summary || []);
+              setAuthor(author => ({ ...author, list: nextAuthorList }));
+              setLayout(layout => ({
+                ...layout,
+                viewModal: {
+                  views: views || [],
+                  visible: origin === 'view',
+                },
+                authorRow: {
+                  ...layout.authorRow,
+                  currency,
+                },
+                footerButton: {
+                  isLoading: false,
+                  isCalculated: true,
+                },
+              }));
+              resolve();
+            } catch (error) {
+              setLayout(layout => ({ ...layout, footerButton: { ...layout.footerButton, isLoading: false } }));
+              reject(error);
+            } finally {
+              worker.terminate();
+            }
+          });
+
+          worker.postMessage({
+            type: 'recalculate',
+            data: {
+              account: currentAccount,
+              author: calculationAuthors,
+              feeFines: initialFeeFines,
+              allMemcalcs,
+              memCalcs: calculationMemCalcs,
+              interestIndexes,
+              interestIndexesFromLaw,
+              nomenclatures,
+              authorIndex: layout.authorRow?.authorIndex || 0,
+              type: origin,
+            },
+          });
+        });
+      } catch (error) {
+        console.error('simple_update_calculation_error', error);
+        alertMessage.error(String(error || 'Houve um erro ao calcular!'));
+        setLayout(layout => ({ ...layout, footerButton: { ...layout.footerButton, isLoading: false } }));
+      }
+    },
+    [
+      account,
+      alertMessage,
+      allMemcalcs,
+      author,
+      interestIndexes,
+      interestIndexesFromLaw,
+      layout.authorRow?.authorIndex,
+      memCalcs,
+      setAuthor,
+      setLayout,
+      setSummary,
+    ]
+  );
+
   const onSave = useCallback(
     async ({ isNewAccount }: { isNewAccount: boolean }) => {
       try {
@@ -1311,6 +1690,7 @@ export const SimpleUpdateHookProvider = ({ children }: { children: JSX.Element }
     updateAccountTotal,
     saveSimpleCalculation,
     onSave,
+    onCalc,
     calculateArt523,
     recalculateAccount,
     recalculateAllAccount,

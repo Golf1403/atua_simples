@@ -159,19 +159,22 @@ export const InputContainer = styled.div`
   display: -ms-flex;
   display: -o-flex;
   display: flex;
-  -webkit-flex: 0 1 ${rem(190)};
-  flex: 0 1 ${rem(190)};
-  min-width: ${rem(130)};
-  max-width: ${rem(220)};
+  -webkit-flex: 0 0 ${rem(220)};
+  flex: 0 0 ${rem(220)};
+  min-width: ${rem(220)};
+  max-width: ${rem(240)};
+  margin-right: ${rem(8)};
   label {
-    width: 50%;
+    width: 100%;
     text-align: center;
   }
   .tax {
-    margin-right: ${rem(4)};
+    display: none;
   }
   .value {
-    margin-left: ${rem(4)};
+    margin-left: 0;
+    min-width: ${rem(170)} !important;
+    width: ${rem(170)} !important;
   }
 `;
 
@@ -224,7 +227,7 @@ export const ExpenseAction = styled.div`
   -ms-justify-content: flex-end;
   justify-content: flex-end;
   margin-left: ${rem(6)};
-  margin-right: ${rem(4)};
+  margin-right: ${rem(12)};
   min-width: ${rem(132)};
   width: ${rem(132)};
   flex-shrink: 0;

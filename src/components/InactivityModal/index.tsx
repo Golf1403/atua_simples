@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import moment from 'moment';
 import { useMemo } from 'react';
@@ -22,8 +22,17 @@ const InactivityModal = ({ visible, closeModal, onLimit, onStayConnected }: Prop
   } = useUser();
   const { isAuth } = useAuth();
   const [timer, setTimer] = useState(0);
+  const limitInSeconds = 300;
+
+  const clearTimer = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
   const formatTimer = (num: number) => {
-    return moment('05:00', 'mm:ss').subtract(num, 's').format('mm:ss');
+    return moment('05:00', 'mm:ss').subtract(Math.min(num, limitInSeconds), 's').format('mm:ss');
   };
 
   const timerString = useMemo(() => formatTimer(timer), [timer]);
@@ -31,38 +40,47 @@ const InactivityModal = ({ visible, closeModal, onLimit, onStayConnected }: Prop
   useEffect(() => {
     if (visible) {
       setTimer(0);
+      clearTimer();
       intervalRef.current = setInterval(() => {
-        setTimer(count => (count < 300 ? count + 1 : 0));
+        setTimer(count => count + 1);
       }, 1000);
     }
-  }, [visible]);
+
+    return clearTimer;
+  }, [visible, clearTimer]);
 
   useEffect(() => {
-    if (timer == 300 && intervalRef.current) {
-      clearInterval(intervalRef.current);
-      closeModal();
+    if (timer >= limitInSeconds && intervalRef.current) {
+      clearTimer();
       onLimit();
       setTimer(0);
     }
-  }, [timer]);
+  }, [timer, clearTimer, onLimit]);
 
   useEffect(() => {
-    if (visible && !isAuth && intervalRef.current) {
+    if (visible && !isAuth) {
       console.info('clear_interval');
-      clearInterval(intervalRef.current);
+      clearTimer();
     }
-  }, [isAuth, visible]);
+  }, [isAuth, visible, clearTimer]);
+
+  const handleClose = () => {
+    clearTimer();
+    closeModal();
+  };
+
+  const handleStayConnected = () => {
+    clearTimer();
+    onStayConnected();
+    closeModal();
+  };
 
   return (
     <DefaultModal
       isOpen={visible}
-      onCancel={() => closeModal()}
-      onClose={() => closeModal()}
-      onConfirm={() => {
-        onStayConnected();
-        closeModal();
-        if (intervalRef.current) clearInterval(intervalRef.current);
-      }}
+      onCancel={handleClose}
+      onClose={handleClose}
+      onConfirm={handleStayConnected}
       title="Voltar a acessar o Sei Cálculos?">
       <Container>
         <Title>

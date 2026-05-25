@@ -17,6 +17,8 @@ import CalculationsResponseImp from '@/interfaces/serviceResponses/CalculationsR
 import { CurrentAccountImp, LayoutImp } from '@/hooks/interfaces/CurrentAccountHookImp';
 import CurrentAuthorImp from '@/interfaces/calculations/CurrentAuthorImp';
 import { SummaryImp } from '@/interfaces/calculations/ViewOccorrenceImp';
+import INomenclature from '@/interfaces/NomenclatureImp';
+import MemCalcImp from '@/interfaces/MemCalcImp';
 
 export interface SimpleUpdateHookImp {
   listAccountsByTypeId: (payload: {
@@ -164,6 +166,11 @@ export interface SimpleUpdateHookImp {
   updateAccountTotal: () => void;
   saveSimpleCalculation: (payload: boolean) => Promise<void>;
   onSave: (payload: { isNewAccount: boolean }) => void;
+  onCalc: (values: {
+    origin: 'view' | 'calc';
+    nomenclatures: INomenclature[];
+    memcalcs?: MemCalcImp[];
+  }) => Promise<void>;
   calculateArt523: (
     art523: MonetaryFine523Imp,
     expenses: ExpenseImp[],

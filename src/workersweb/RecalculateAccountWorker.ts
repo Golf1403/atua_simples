@@ -17,7 +17,8 @@ self.onmessage = async function (event) {
         } = await currentAccountService.calculate(payload);
         postMessage({ type: 'recalculated', data: { authorList: newAuthorList, views, feeFineList, summary } });
       } catch (error) {
-        postMessage({ type: 'error', data: error });
+        const data = error instanceof Error ? error.message : error;
+        postMessage({ type: 'error', data });
       }
       break;
   }

@@ -22,6 +22,8 @@ export const Form = styled(CustomForm)`
   align-items: center;
   min-height: ${rem(42)};
   margin: 2px;
+  width: calc(100% - 4px);
+  box-sizing: border-box;
 
   &:hover {
     margin: 2px;
@@ -31,6 +33,8 @@ export const Form = styled(CustomForm)`
 
 export const BorderContainer = styled.div<{ $isActive?: boolean }>`
   border: 2px solid ${props => (props.$isActive ? colorfees : 'transparent')};
+  width: 100%;
+  box-sizing: border-box;
 
   &:hover {
     border: 2px solid ${coloraero};
@@ -39,6 +43,8 @@ export const BorderContainer = styled.div<{ $isActive?: boolean }>`
 
 export const HeaderContainer = styled.div`
   display: flex;
+  width: 100%;
+  box-sizing: border-box;
   text-transform: uppercase;
   font-size: ${fontsm};
   padding-bottom: ${rem(2)};
@@ -52,7 +58,8 @@ export const Container = styled.div`
   display: flex;
   width: 100%;
   flex-direction: column;
-  padding: ${rem(16)} 0;
+  padding: ${rem(16)} ${rem(8)} ${rem(16)} 0;
+  box-sizing: border-box;
 
   input:focus,
   select:focus {
@@ -90,16 +97,16 @@ export const Input = styled(DefaultInput)``;
 
 export const DescriptionContainer = styled.div`
   display: flex;
-  min-width: ${rem(190)};
-  flex: 1 1 ${rem(240)};
+  min-width: ${rem(150)};
+  flex: 1 1 ${rem(180)};
   margin-right: ${rem(8)};
 `;
 
 export const PercentageContainer = styled.div`
   display: flex;
+  flex: 0 0 ${rem(78)};
   min-width: ${rem(78)};
-  max-width: ${rem(96)};
-  width: 100%;
+  max-width: ${rem(78)};
   margin-right: ${rem(8)};
 
   label {
@@ -110,9 +117,9 @@ export const PercentageContainer = styled.div`
 
 export const InputDateContainer = styled.div`
   display: flex;
-  flex: 0 0 ${rem(230)};
-  min-width: ${rem(230)};
-  max-width: ${rem(250)};
+  flex: 0 0 ${rem(170)};
+  min-width: ${rem(170)};
+  max-width: ${rem(170)};
   margin-right: ${rem(8)};
 
   .update-since {
@@ -121,11 +128,11 @@ export const InputDateContainer = styled.div`
 
   .date {
     margin-left: 0;
-    width: ${rem(170)};
+    width: ${rem(150)};
 
     input {
-      min-width: ${rem(170)} !important;
-      width: ${rem(170)} !important;
+      min-width: ${rem(150)} !important;
+      width: ${rem(150)} !important;
     }
   }
 `;
@@ -134,9 +141,9 @@ export const InputDate = styled(DefaultDateInput)``;
 
 export const InputContainer = styled.div`
   display: flex;
-  flex: 0 0 ${rem(260)};
-  min-width: ${rem(260)};
-  max-width: ${rem(280)};
+  flex: 0 0 ${rem(190)};
+  min-width: ${rem(190)};
+  max-width: ${rem(190)};
   margin-right: ${rem(8)};
 
   label {
@@ -150,8 +157,8 @@ export const InputContainer = styled.div`
 
   .value {
     margin-left: 0;
-    min-width: ${rem(200)} !important;
-    width: ${rem(200)} !important;
+    min-width: ${rem(170)} !important;
+    width: ${rem(170)} !important;
   }
 `;
 
@@ -159,9 +166,9 @@ export const CorrectedContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  flex: 0 1 ${rem(160)};
-  min-width: ${rem(138)};
-  max-width: ${rem(180)};
+  flex: 0 0 ${rem(120)};
+  min-width: ${rem(120)};
+  max-width: ${rem(120)};
   margin-right: ${rem(8)};
   color: ${colorstategray};
   font-size: ${fontmd};
@@ -169,7 +176,7 @@ export const CorrectedContainer = styled.div`
 `;
 
 export const CpcAction = styled.button`
-  margin-left: ${rem(8)};
+  margin-left: ${rem(4)};
   padding: 0;
   border: 0;
   background: transparent;
@@ -198,10 +205,10 @@ export const BackgroudContainer = styled.div`
 export const ExpenseAction = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-left: ${rem(8)};
-  padding-right: ${rem(14)};
-  width: ${rem(110)};
-  min-width: ${rem(110)};
+  margin-left: ${rem(4)};
+  margin-right: ${rem(4)};
+  width: ${rem(96)};
+  min-width: ${rem(96)};
   flex-shrink: 0;
   color: ${colorstategray};
 

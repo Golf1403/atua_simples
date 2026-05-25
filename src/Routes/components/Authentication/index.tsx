@@ -27,6 +27,7 @@ const Authentication = ({ children: Children }: { children: JSX.Element }) => {
 
   const isFirstInit = useRef<null | boolean>(true);
   const intervalRef = useRef<null | NodeJS.Timeout>(null);
+  const inactivityVisibleRef = useRef(false);
   const [inactivityVisible, setInactivityVisible] = useState(false);
   const { nomenclatures } = useNomenclatures();
 
@@ -75,12 +76,11 @@ const Authentication = ({ children: Children }: { children: JSX.Element }) => {
     localStorage.setItem('expireTime', String(newExpireTime));
   };
 
-  const savePathSwitch = async (pathname: string) => {
-    switch (pathname) {
+  const savePathSwitch = async (path: string) => {
+    switch (path) {
       case pathEnum.CURRENT_ACCOUNT:
-        toolbar.save && toolbar.save();
-        break;
       case pathEnum.SIMPLE_UPDATE:
+        if (toolbar.save) await Promise.resolve(toolbar.save());
         break;
       case pathEnum.AUTOMATED_UPDATE:
         break;
@@ -91,11 +91,11 @@ const Authentication = ({ children: Children }: { children: JSX.Element }) => {
 
   const pathChecker = async (pathname: string) => {
     const pathList = [pathEnum.CURRENT_ACCOUNT, pathEnum.AUTOMATED_UPDATE, pathEnum.FINANCING, pathEnum.SIMPLE_UPDATE];
-    pathList.forEach(async element => {
+    for (const element of pathList) {
       if (pathname.includes(element)) {
         return await savePathSwitch(element);
       }
-    });
+    }
   };
 
   const convertToUTC = (date: moment.MomentInput) => {
@@ -109,11 +109,14 @@ const Authentication = ({ children: Children }: { children: JSX.Element }) => {
   const checkForInactivity = async () => {
     const expireTimeUTC = getExpireTimeUTC();
     const nowUTC = getNowUTC();
-    if (expireTimeUTC.isBefore(nowUTC))
-      toolbar.calculator && toolbar.calculator(nomenclatures) && setInactivityVisible(true);
+    if (expireTimeUTC.isBefore(nowUTC)) {
+      if (toolbar.calculator) await Promise.resolve(toolbar.calculator(nomenclatures));
+      setInactivityVisible(true);
+    }
   };
 
   const updateExpireTime = () => {
+    if (inactivityVisibleRef.current) return;
     setExpireTime();
   };
 
@@ -124,7 +127,6 @@ const Authentication = ({ children: Children }: { children: JSX.Element }) => {
 
   const closeInactivityModal = () => {
     setInactivityVisible(false);
-    intervalRef.current = checkInativityInterval();
   };
 
   const onInactivityLimit = async () => {
@@ -136,6 +138,10 @@ const Authentication = ({ children: Children }: { children: JSX.Element }) => {
       logout();
     }, timeoutEnum.DEFAULT_TIMEOUT);
   };
+
+  useEffect(() => {
+    inactivityVisibleRef.current = inactivityVisible;
+  }, [inactivityVisible]);
 
   useEffect(() => {
     if (!isAuth) return;
@@ -159,21 +165,14 @@ const Authentication = ({ children: Children }: { children: JSX.Element }) => {
     }, timeoutEnum.ONE_MINUTES);
 
   useEffect(() => {
-    if (!isAuth) return;
+    if (!isAuth || inactivityVisible) return;
 
     intervalRef.current = checkInativityInterval();
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isAuth]);
-
-  useEffect(() => {
-    if (inactivityVisible && intervalRef.current) {
-      clearInterval(intervalRef.current);
-      return;
-    }
-  }, [inactivityVisible]);
+  }, [isAuth, inactivityVisible]);
 
   useEffect(() => {
     if (!isAuth) return;
