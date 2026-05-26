@@ -43,6 +43,16 @@ class AutomatedUpdateService extends BaseService {
         const response = account.id
           ? await this.axios.put(`${resourcePath}/${account.id}`, account)
           : await this.axios.post(resourcePath, account);
+
+        // O POST/PUT pode retornar somente a conta principal. O GET recompõe autores,
+        // parcelas, despesas e honorarios para manter a tela fiel ao que ficou salvo.
+        const savedAccountId = response.data?.id || account.id;
+        if (savedAccountId) {
+          const fullAccount = await this.axios.get(`${resourcePath}/${savedAccountId}`);
+          resolve(fullAccount.data);
+          return;
+        }
+
         resolve(response.data);
       } catch (error) {
         reject({ msg: getErrorMessage(error), status: error?.response?.status || 400 });

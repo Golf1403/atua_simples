@@ -403,6 +403,20 @@ const AutomatedUpdate = (): JSX.Element => {
     }
   };
 
+  const editAccount = async (account: AutomatedUpdateAccountImp) => {
+    if (!account.id) return;
+
+    setLoading(true);
+    try {
+      const fullAccount = await automatedUpdateService.showAccount(account.id);
+      setForm(mapAccountToForm(fullAccount));
+    } catch (error) {
+      alertMessage.error(error?.msg || 'Erro ao carregar atualização automatizada');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateAuthor = (authorId: string, patch: Partial<AutomatedAuthorForm>) => {
     setForm(current => ({
       ...current,
@@ -910,11 +924,7 @@ const AutomatedUpdate = (): JSX.Element => {
                 <td>{formatDate(account.createdAt)}</td>
                 <td>
                   <Actions>
-                    <ActionButton
-                      type="button"
-                      title="Editar"
-                      onClick={() => setForm(mapAccountToForm(account))}
-                      disabled={loading}>
+                    <ActionButton type="button" title="Editar" onClick={() => editAccount(account)} disabled={loading}>
                       <FaCopy />
                     </ActionButton>
                     <ActionButton

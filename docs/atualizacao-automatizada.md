@@ -6,6 +6,7 @@ Este documento registra a integracao local do modulo de Atualizacao Automatizada
 
 - `I:\sei-calculos\sei-ms-automated-update`: API NestJS local com DynamoDB local.
 - `I:\sei-calculos\sei-ms-automated-update-dev-handler`: variante serverless para ambiente dev.
+- `I:\sei-calculos\sei-ms-print-financing-hml-automatedPrint`: Lambda de impressao HML com endpoint de impressao automatizada.
 
 ## API local
 
@@ -66,6 +67,27 @@ O front monta o payload conforme o contrato do microservico:
 - `fees`: honorarios do calculo.
 
 Quando o ambiente local nao consegue autenticar no servico de indices, a tela usa uma lista minima de apoio (`CDI`, `SELIC`, `Salario minimo`) para permitir o trabalho local sem travar o formulario.
+
+## Persistencia no SPA
+
+O `POST /v1/automated-update-accounts` pode responder apenas a conta principal. Por isso, depois de criar ou atualizar, o SPA chama `GET /v1/automated-update-accounts/:id` para recompor autores, parcelas, despesas e honorarios salvos.
+
+Ao editar um item pela lista de calculos salvos, a tela tambem usa o `GET /:id` antes de preencher o formulario. Isso evita editar com dados parciais da listagem.
+
+## Impressao automatizada
+
+A pasta `sei-ms-print-financing-hml-automatedPrint` confirma o endpoint:
+
+- `POST /print-financing/automated`
+- `GET /print-financing/automated`
+
+O payload validado pelo servico de impressao usa:
+
+- `configuration`: configuracao de impressao.
+- `infos.account`: dados principais do calculo.
+- `infos.authors`: autores com `installments`, `payments`, `expenses`, `fees` e totais.
+
+Essa estrutura sera a base para integrar o botao de impressao da Atualizacao Automatizada quando a tela passar a manter o resultado calculado completo.
 
 ## Observacoes
 
