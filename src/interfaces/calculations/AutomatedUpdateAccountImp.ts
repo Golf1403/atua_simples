@@ -18,6 +18,10 @@ export interface AutomatedUpdateExpenseImp {
   date?: string | Date;
   // Valor original da despesa.
   value?: number;
+  // Indica se a despesa entra na base do Art. 523.
+  article523?: boolean;
+  // Posicao da despesa na tela e no calculo.
+  position?: number;
 }
 
 export interface AutomatedUpdateFeeImp {
@@ -27,10 +31,16 @@ export interface AutomatedUpdateFeeImp {
   description?: string;
   // Data usada para atualizar os honorários.
   date?: string | Date;
+  // Data inicial de atualizacao dos honorarios no contrato do microservico.
+  updateSince?: string | Date;
   // Percentual aplicado quando os honorários são calculados por percentual.
   percentage?: number;
   // Valor original ou calculado dos honorários.
   value?: number;
+  // Indica se os honorarios seguem a regra do novo CPC.
+  newCpc?: boolean;
+  // Posicao dos honorarios na tela e no calculo.
+  position?: number;
 }
 
 export default interface AutomatedUpdateAccountImp {

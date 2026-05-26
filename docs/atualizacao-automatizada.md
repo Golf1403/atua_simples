@@ -45,13 +45,29 @@ Fora de `localhost`, o fallback aponta para o handler remoto em:
 
 `REACT_APP_API_BASE_URL/automated-update`
 
-## Tela inicial
+## Tela do SPA
 
 A rota `/calculation/automated-update` carrega a tela `src/pages/calculations/AutomatedUpdate`.
 
-Neste primeiro momento, a tela lista os calculos existentes no microservico, permite atualizar a listagem, excluir registros e acionar o endpoint de calculo de uma conta ja criada.
+Ela possui os blocos principais do calculo:
+
+- Dados do calculo: centro de custo, nome, data final de atualizacao, indice, deflacao, expurgos, pro-rata, vara, autos, reu e observacao.
+- Autores: cada autor pode receber ocorrencias de Parcela e Pagamento.
+- Despesas: despesas independentes do autor, com opcao de Art. 523.
+- Honorarios: honorarios independentes do autor, com opcao de novo CPC.
+- Total geral: soma local dos valores informados na tela, antes do calculo definitivo do microservico.
+- Calculos salvos: listagem dos registros existentes, com acoes de editar, calcular e excluir.
+
+O front monta o payload conforme o contrato do microservico:
+
+- `accountingParts[].installments`: ocorrencias do tipo Parcela.
+- `accountingParts[].payments`: ocorrencias do tipo Pagamento.
+- `expenses`: despesas do calculo.
+- `fees`: honorarios do calculo.
+
+Quando o ambiente local nao consegue autenticar no servico de indices, a tela usa uma lista minima de apoio (`CDI`, `SELIC`, `Salario minimo`) para permitir o trabalho local sem travar o formulario.
 
 ## Observacoes
 
-- O proximo passo e criar o formulario completo de cadastro/edicao consumindo `AutomatedUpdateService`.
 - A API local foi ajustada para aceitar CORS de `http://localhost:3000`.
+- A implementacao antiga completa da tela nao foi encontrada no `sei-spa` local nem em `I:\sei-calculos - Copia`; nessas bases a rota ainda apontava para `InContruction`.
