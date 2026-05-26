@@ -25,3 +25,23 @@ export type FinancingCalculationResult = {
   installments: DataTableCellImp[];
   total: FinancingTotals;
 };
+
+export type FinancingStrategyInput = {
+  balance: number;
+  context: FinancingStrategyContext;
+  interest: number;
+};
+
+export type FinancingStrategyResult = {
+  amortization: number;
+  installment: number;
+};
+
+export type FinancingStrategy = (input: FinancingStrategyInput) => FinancingStrategyResult;
+
+export type FinancingStrategyContext = {
+  amortizationPeriods: number;
+  fixedAmortization: number;
+  monthlyRate: number;
+  originalValue: number;
+};

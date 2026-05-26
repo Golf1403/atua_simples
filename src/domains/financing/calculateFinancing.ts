@@ -1,6 +1,7 @@
 import moment from 'moment';
 import { DataTableCellImp } from '@/interfaces/DataTableImp';
 import { FinancingCalculationInput, FinancingCalculationResult, FinancingTotals } from './types';
+import { financingStrategies, sacStrategy } from './strategies';
 
 const toMonthlyRate = (interest: string | number): number => {
   const normalizedInterest = Number(String(interest).replace(',', '.')) || 0;
@@ -26,41 +27,6 @@ const sumTotals = (installments: DataTableCellImp[]): FinancingTotals => {
   );
 };
 
-const calculatePriceInstallment = (balance: number, monthlyRate: number, periods: number): number => {
-  if (monthlyRate <= 0) return balance / periods;
-
-  const factor = Math.pow(1 + monthlyRate, periods);
-  return (balance * monthlyRate * factor) / (factor - 1);
-};
-
-const getAmortization = ({
-  balance,
-  financingType,
-  fixedAmortization,
-  interest,
-  priceInstallment,
-}: {
-  balance: number;
-  financingType: string;
-  fixedAmortization: number;
-  interest: number;
-  priceInstallment: number;
-}): { amortization: number; installment: number } => {
-  if (financingType === 'price') {
-    const installment = priceInstallment;
-    return {
-      amortization: Math.min(Math.max(installment - interest, 0), balance),
-      installment,
-    };
-  }
-
-  const amortization = Math.min(fixedAmortization, balance);
-  return {
-    amortization,
-    installment: amortization + interest,
-  };
-};
-
 export const calculateFinancing = (financing: FinancingCalculationInput): FinancingCalculationResult => {
   const deadline = Number(financing.deadline);
   const shortage = Number(financing.shortage || 0);
@@ -69,9 +35,14 @@ export const calculateFinancing = (financing: FinancingCalculationInput): Financ
   const startDate = moment(financing.date, 'YYYY-MM-DD');
   const rows: DataTableCellImp[] = [];
   let balance = Number(financing.value);
-
-  const priceInstallment = calculatePriceInstallment(balance, monthlyRate, amortizationPeriods);
   const fixedAmortization = balance / amortizationPeriods;
+  const strategy = financingStrategies[financing.type] || sacStrategy;
+  const context = {
+    amortizationPeriods,
+    fixedAmortization,
+    monthlyRate,
+    originalValue: balance,
+  };
 
   for (let index = 0; index < deadline; index += 1) {
     const dueDate = startDate
@@ -86,12 +57,10 @@ export const calculateFinancing = (financing: FinancingCalculationInput): Financ
     let installment = interest;
 
     if (!isShortagePeriod) {
-      const result = getAmortization({
+      const result = strategy({
         balance,
-        financingType: financing.type,
-        fixedAmortization,
+        context,
         interest,
-        priceInstallment,
       });
       amortization = result.amortization;
       installment = result.installment;

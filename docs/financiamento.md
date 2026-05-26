@@ -40,6 +40,15 @@ Para modernizacao e funcionamento local, foi criada a camada de dominio:
 
 Essa camada contem funcoes puras de calculo local e testes automatizados. O servico usa essa camada quando o sistema esta em `localhost` sem token real, ou como contingencia em falha local de rede/autorizacao.
 
+A camada de dominio esta organizada para que cada modelo de financiamento fique isolado em uma estrategia propria:
+
+- `calculateFinancing.ts`: monta o cronograma mensal, aplica carencia, atualiza saldo e soma os totais.
+- `strategies/price.ts`: calcula a Tabela Price com prestacao fixa a partir do valor original, taxa mensal e prazo amortizavel.
+- `strategies/sac.ts`: calcula SAC com amortizacao constante e prestacao decrescente.
+- `strategies/index.ts`: escolhe a estrategia pelo tipo informado pela tela.
+
+Por enquanto, SACRE e Linear continuam direcionados para a estrategia SAC como comportamento temporario de compatibilidade. As regras especificas desses modelos ainda precisam ser levantadas e homologadas antes de substituir esse fallback.
+
 Primeiros modelos cobertos por testes:
 
 - Price: prestacao fixa, amortizacao crescente e juros decrescentes.
