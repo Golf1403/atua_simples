@@ -66,7 +66,7 @@ export const Routes: Route[] = [
     exact: true,
     auth: true,
     groups: ['owner', 'admin', 'user'],
-    component: lazy(() => import('../../pages/InContruction')),
+    component: lazy(() => import('../../pages/calculations/AutomatedUpdate')),
   },
   financingPage,
 ];

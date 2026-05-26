@@ -45,8 +45,13 @@ Fora de `localhost`, o fallback aponta para o handler remoto em:
 
 `REACT_APP_API_BASE_URL/automated-update`
 
+## Tela inicial
+
+A rota `/calculation/automated-update` carrega a tela `src/pages/calculations/AutomatedUpdate`.
+
+Neste primeiro momento, a tela lista os calculos existentes no microservico, permite atualizar a listagem, excluir registros e acionar o endpoint de calculo de uma conta ja criada.
+
 ## Observacoes
 
-- A rota `/calculation/automated-update` ainda aponta para a tela em construcao no SPA.
-- O proximo passo e criar a tela/lista/formulario consumindo `AutomatedUpdateService`.
+- O proximo passo e criar o formulario completo de cadastro/edicao consumindo `AutomatedUpdateService`.
 - A API local foi ajustada para aceitar CORS de `http://localhost:3000`.

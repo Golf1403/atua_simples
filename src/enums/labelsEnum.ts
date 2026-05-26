@@ -132,6 +132,7 @@ export enum labelsEnum {
   CURRENT_ACCOUNT_TOTAL = 'Total do cálculo de conta corrente',
   MEM_CALC = 'Memória de Cálculo',
   SIMPLE_UPDATE = 'Cálculos - Atualização Simples',
+  AUTOMATED_UPDATE = 'Atualização Automatizada',
   SIMPLE_UPDATE_TITLE = 'Cálculo Atualização Simples',
   OCCURRENCES_ADD = 'Incluir Ocorrências',
   EXPENSES_ADD = 'Incluir Despesas',
