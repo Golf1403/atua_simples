@@ -9,6 +9,8 @@ import { useLoading } from '@/hooks/loading';
 export type FCC<P = {}> = FC<PropsWithChildren<P>>;
 interface PropsImp {
   component: FCC<RouteComponentProps>;
+  exact?: boolean;
+  path: string;
 }
 
 const PublicRoute: FCC<PropsImp> = ({ component: Component, ...rest }: PropsImp) => {

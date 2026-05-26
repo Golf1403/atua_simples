@@ -110,7 +110,7 @@ export enum labelsEnum {
   CONVERTER_INDEX = 'Indices',
   INDICATORS = 'Indicadores',
   RETROACTOR = 'Retroator',
-  FINANCING = 'Finaciamento',
+  FINANCING = 'Financiamento',
   FINANCING_CREDIT_PURCHASE = 'Compras à Prazo',
   FINANCING_AMORTIZATION = AMORTIZATION,
   FINANCING_CAPITALIZATION = 'Capitalização',

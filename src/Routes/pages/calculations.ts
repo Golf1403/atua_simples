@@ -29,7 +29,7 @@ export const financingPage: Route = {
   exact: true,
   auth: true,
   groups: ['owner', 'admin', 'user'],
-  component: lazy(() => import('../../pages/InContruction')),
+  component: lazy(() => import('../../pages/calculations/Financing')),
 };
 // current account
 export const newCurrentAccountPage: Route = {

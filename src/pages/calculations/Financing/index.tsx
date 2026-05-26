@@ -3,16 +3,14 @@ import React, { useState, useEffect, Fragment } from 'react';
 import DataTable from './DataTable';
 import FinancingImp from '@interfaces/calculations/FinancingImp';
 import IndexFlags from '../../../enums/IndexFlags';
-import CustomSelect from '@components/CustomSelect';
 import ISelectOption from '@interfaces/SelectOptionImp';
 import TotalBottomBar from '@components/TotalBottomBar';
 import FormGroupCurrency from '@components/FormGroupCurrency';
-import CustomCheckbox from '@components/CustomCheckbox';
 import CalculationsServices from '@services/CalculationsServices/FinancingService';
 
 import financingSchema from '../../../validators/calculations/financing';
 
-import { Formik, useFormik } from 'formik';
+import { useFormik } from 'formik';
 import { mapIndexList } from '@lib/utils';
 import { convertCurrencyToPtBr } from '@lib/currency';
 import { defaultTableColumns, defaultTableColumnsWithIndex } from './TableColumns/index';
@@ -29,8 +27,6 @@ import { useLoading } from '@/hooks/loading';
 import { useFactors } from '@/hooks/factors';
 import { useCore } from '@/hooks/core';
 import { labelsEnum } from '@/enums/labelsEnum';
-import { DateInput } from '@/pages/tools/Retroactor/components/styles';
-import DefaultInput from '@/components/DefaultInput';
 
 const startData: DataTableCellImp[] = [];
 
@@ -194,14 +190,14 @@ const FormikFinancing = (): JSX.Element => {
   };
 
   const setMoneyField = (maskedValue: string, float: number, name: string) => {
-    setFieldValue(name, float);
+    setFieldValue(name, float || 0);
   };
 
   const onIndexChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFieldValue(name, value);
     setTableData(startData);
-    if (value) {
+    if (value && value !== String(-1)) {
       const columns = Array.from(defaultTableColumnsWithIndex);
       setTableColumns(columns);
       return;
@@ -215,7 +211,7 @@ const FormikFinancing = (): JSX.Element => {
     setFieldValue(name, value);
     setTableData(startData);
 
-    if (isIndexSelected) {
+    if (isIndexSelected && isIndexSelected !== String(-1)) {
       const columns = Array.from(defaultTableColumnsWithIndex);
       setTableColumns(columns);
       return;
@@ -290,29 +286,43 @@ const FormikFinancing = (): JSX.Element => {
   return (
     <Fragment>
       <form onSubmit={handleSubmit}>
-        <CustomSelect
-          id="financing-type"
-          label={labelsEnum.TYPE}
-          name="type"
-          onChange={onTypeChange}
-          options={typeOptions}
-          value={values.type}
-        />
-        <DefaultInput
-          type="text"
-          id="financing-name"
-          label="Nome"
-          name="name"
-          onChange={handleChange}
-          value={values.name}
-        />
-        <DateInput
-          label={labelsEnum.DATE}
-          name="date"
-          id="financing-date"
-          onChange={_setChangeDate}
-          onKeyDown={datePickerKeyDown}
-        />
+        <div className="form-group">
+          <label htmlFor="financing-type">{labelsEnum.TYPE}</label>
+          <select id="financing-type" name="type" className="form-control" onChange={onTypeChange} value={values.type}>
+            <option value="" disabled>
+              Selecione...
+            </option>
+            {typeOptions.map(option => (
+              <option key={option.id} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="financing-name">Nome</label>
+          <input
+            type="text"
+            id="financing-name"
+            name="name"
+            className="form-control"
+            onChange={handleChange}
+            value={values.name}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="financing-date">{labelsEnum.DATE}</label>
+          <input
+            type="date"
+            id="financing-date"
+            name="date"
+            className="form-control"
+            min="1994-08-01"
+            onChange={event => _setChangeDate(moment(event.target.value, 'YYYY-MM-DD').toDate())}
+            onKeyDown={datePickerKeyDown}
+            value={moment(values.date).format('YYYY-MM-DD')}
+          />
+        </div>
         <FormGroupCurrency
           label={labelsEnum.VALUE}
           name="value"
@@ -322,22 +332,30 @@ const FormikFinancing = (): JSX.Element => {
           value={values.value}
           error={errors.value}
         />
-        <DefaultInput
-          type="number"
-          id="financing-deadline"
-          label={labelsEnum.DEADLINE}
-          name="deadline"
-          onChange={handleChange}
-          value={values.deadline}
-        />
-        <DefaultInput
-          type="number"
-          id="financing-grace"
-          label={labelsEnum.SHORTAGE}
-          name="shortage"
-          onChange={handleChange}
-          value={values.shortage}
-        />
+        <div className="form-group">
+          <label htmlFor="financing-deadline">{labelsEnum.DEADLINE}</label>
+          <input
+            type="number"
+            id="financing-deadline"
+            name="deadline"
+            className="form-control"
+            min="0"
+            onChange={handleChange}
+            value={values.deadline}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="financing-grace">{labelsEnum.SHORTAGE}</label>
+          <input
+            type="number"
+            id="financing-grace"
+            name="shortage"
+            className="form-control"
+            min="0"
+            onChange={handleChange}
+            value={values.shortage}
+          />
+        </div>
         <FormGroupCurrency
           id="financing-interest"
           name="interest"
@@ -347,17 +365,33 @@ const FormikFinancing = (): JSX.Element => {
           value={values.interest}
           error={errors.interest}
         />
-        <CustomCheckbox id="financing-positive" name="positive" onChange={handleChange} label="Percentual negativo " />
+        <label className="form-check">
+          <input
+            id="financing-positive"
+            name="positive"
+            type="checkbox"
+            checked={values.positive}
+            onChange={handleChange}
+          />
+          Percentual negativo
+        </label>
         {values.type && (
           <Tooltip indexTooltip={indexTooltipPayload}>
-            <CustomSelect
-              id="financing-index"
-              label="Índice"
-              name="index"
-              onChange={onIndexChange}
-              options={indexesList}
-              value={values.index}
-            />
+            <div className="form-group">
+              <label htmlFor="financing-index">Índice</label>
+              <select
+                id="financing-index"
+                name="index"
+                className="form-control"
+                onChange={onIndexChange}
+                value={values.index}>
+                {indexesList.map(option => (
+                  <option key={option.id} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </Tooltip>
         )}
         <button type={'submit'}>{labelsEnum.GENERAGE_INSTALLMENT}</button>
@@ -392,12 +426,6 @@ const FormikFinancing = (): JSX.Element => {
   );
 };
 
-const Financing = () => {
-  return (
-    <Formik initialValues={{}} onSubmit={() => {}}>
-      <FormikFinancing />
-    </Formik>
-  );
-};
+const Financing = () => <FormikFinancing />;
 
 export default Financing;

@@ -187,6 +187,7 @@ const clearAuthorNewestFlags = (author: CurrentAuthorImp): CurrentAuthorImp =>
     fees: clearNewestFlags(author.fees || []),
   } as CurrentAuthorImp);
 
+// Campos de moeda/percentual chegam da tela formatados; o motor de calculo espera numero puro.
 const toCalculationNumber = (value: any) => {
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
   if (value === null || value === undefined || value === '') return 0;
@@ -252,6 +253,7 @@ const mapOccurrenceFineToInterestFine = (fine: any) => {
 };
 
 const mapAuthorToCalculation = (currentAuthor: CurrentAuthorImp): CurrentAuthorImp => {
+  // Honorarios sao exibidos em lista propria na tela simples, mas o motor legado calcula como ocorrencia.
   const occurrences = (currentAuthor.occurrences || []).map((occurrence: any) => ({
     ...normalizeCalculatedNumberFields(occurrence, ['value', 'correctedValue', 'total', 'tax']),
     interests: (occurrence.interests || []).map((interest: any) =>
@@ -381,6 +383,7 @@ const getMemCalcsMaxDate = (memcalcs: MemCalcImp[]) => {
   return maxDate;
 };
 
+// Usa a menor data lancada para reduzir a memoria de indice buscada no banco.
 const getAuthorStartDate = (authors: CurrentAuthorImp[]) => {
   const dates = authors
     .flatMap((currentAuthor: any) => [
@@ -404,6 +407,7 @@ const mapCalculatedAuthorToSimple = (
   originalAuthor: CurrentAuthorImp,
   authorViews: ViewOccorrenceImp[]
 ) => {
+  // Depois do motor legado, separa honorarios novamente para manter o desenho da tela simples.
   const calculatedOccurrences = calculatedAuthor.occurrences || [];
   const occurrences = calculatedOccurrences.filter((occurrence: any) => occurrence.type !== typeFee.id);
   const feesFromOccurrences = calculatedOccurrences.filter((occurrence: any) => occurrence.type === typeFee.id);
@@ -1454,6 +1458,7 @@ export const SimpleUpdateHookProvider = ({ children }: { children: JSX.Element }
             const fallbackMemCalcs = memcalcs || allMemcalcs?.[indexId] || memCalcs || [];
             const fallbackMaxDate = getMemCalcsMaxDate(fallbackMemCalcs);
             const updateTo = moment(currentAccount.current.updateTo, dateFormatEnum.DEFAULT, true);
+            // Fallback local defasado bloqueia o calculo para evitar resultado financeiro incorreto.
             const canUseFallback =
               fallbackMaxDate && updateTo.isValid() && moment(fallbackMaxDate).isSameOrAfter(updateTo, 'day');
 

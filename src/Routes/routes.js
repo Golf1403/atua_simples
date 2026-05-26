@@ -7,4 +7,5 @@ import print from './pages/print';
 import tools from './pages/tools';
 import help from './pages/help';
 
-export default [...auth, ...help, ...dashboard, ...calculations, ...user, ...print, ...tools, ...admin];
+// Rotas especificas devem vir antes do dashboard raiz para evitar que "/" capture modulos profundos.
+export default [...auth, ...help, ...calculations, ...user, ...print, ...tools, ...admin, ...dashboard];

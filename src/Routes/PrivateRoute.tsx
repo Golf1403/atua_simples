@@ -16,6 +16,7 @@ export type FCC<P = {}> = FC<PropsWithChildren<P>>;
 
 interface PropsImp {
   component: FCC<RouteComponentProps>;
+  exact?: boolean;
   groups: string[];
   path: string;
 }
@@ -23,7 +24,7 @@ interface PropsImp {
 const PrivateRoute = ({ component: Component, groups, ...rest }: PropsImp): JSX.Element => {
   const { user } = useUser();
   const { isLoading } = useLoading();
-  const { isAuth } = useAuth();
+  const { isAuth, isCheckingAccess } = useAuth();
   const { setSidebar } = useCore();
   const [isAccordingTerm, setIsAccordingTerm] = useState(false);
 
@@ -41,6 +42,8 @@ const PrivateRoute = ({ component: Component, groups, ...rest }: PropsImp): JSX.
     <Route
       {...rest}
       render={(props: RouteComponentProps) => {
+        if (isCheckingAccess) return <Fragment />;
+
         if (isAuth) {
           if (props.location.pathname.includes('/user/signature')) return <Component {...props} />;
 

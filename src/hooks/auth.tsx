@@ -10,15 +10,18 @@ import getTokens from '@/services/http/getTokens';
 
 type AuthType = {
   isAuth: boolean;
+  isCheckingAccess: boolean;
 };
 
 const AuthContext = createContext<AuthType>({
   isAuth: false,
+  isCheckingAccess: true,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactElement }) => {
   const dispatch = useDispatch();
   const [isAuth, setIsAuth] = useState(false);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true);
   const { setUser } = useUser();
 
   const setUserAbility = (decodedToken: { user: IDummyObject }) => {
@@ -48,42 +51,49 @@ export const AuthProvider = ({ children }: { children: React.ReactElement }) => 
   };
 
   const checkAccess = async () => {
-    // DEV: bypass auth on localhost for UI testing
-    if (window.location.hostname === 'localhost') {
-      const ability = new Ability([
-        { action: 'manage', subject: 'all' },
-        { action: 'view', subject: 'ArticleApply' },
-      ]);
-      dispatch({ type: AuthActionTypes.SET_ABILITY, payload: ability });
-      setUser({
-        id: 'dev',
-        firstName: 'Dev',
-        lastName: 'User',
-        email: 'dev@localhost',
-        licenseId: 'dev',
-        isAdmUser: true,
-        master: true,
-        group: 'admin',
-        costCenters: [],
-      });
-      setIsAuth(true);
-      return;
-    }
-
-    const { refreshToken, token } = getTokens();
-    if (!token || !refreshToken) return;
-
-    const decodedToken = jwt_decode<any>(token as string);
     try {
-      const now = moment(new Date()).utc();
-      const expireTime = moment.unix(decodedToken.exp).utc();
+      // DEV: libera a navegacao local sem depender de token real.
+      if (window.location.hostname === 'localhost') {
+        const ability = new Ability([
+          { action: 'manage', subject: 'all' },
+          { action: 'view', subject: 'ArticleApply' },
+        ]);
+        dispatch({ type: AuthActionTypes.SET_ABILITY, payload: ability });
+        setUser({
+          id: 'dev',
+          firstName: 'Dev',
+          lastName: 'User',
+          email: 'dev@localhost',
+          licenseId: 'dev',
+          isAdmUser: true,
+          master: true,
+          group: 'admin',
+          costCenters: [],
+        });
+        setIsAuth(true);
+        return;
+      }
 
-      if (now.isAfter(expireTime)) throw 'is expired';
-      setUser(decodedToken.user);
-      setUserAbility(decodedToken);
-      setIsAuth(true);
-    } catch (error) {
-      setIsAuth(false);
+      const { refreshToken, token } = getTokens();
+      if (!token || !refreshToken) {
+        setIsAuth(false);
+        return;
+      }
+
+      const decodedToken = jwt_decode<any>(token as string);
+      try {
+        const now = moment(new Date()).utc();
+        const expireTime = moment.unix(decodedToken.exp).utc();
+
+        if (now.isAfter(expireTime)) throw 'is expired';
+        setUser(decodedToken.user);
+        setUserAbility(decodedToken);
+        setIsAuth(true);
+      } catch (error) {
+        setIsAuth(false);
+      }
+    } finally {
+      setIsCheckingAccess(false);
     }
   };
 
@@ -95,6 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactElement }) => 
     <AuthContext.Provider
       value={{
         isAuth,
+        isCheckingAccess,
       }}>
       {children}
     </AuthContext.Provider>
