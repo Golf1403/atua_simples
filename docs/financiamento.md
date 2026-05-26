@@ -30,9 +30,21 @@ Os campos principais tambem foram desacoplados de um Formik vazio que existia ao
 
 ## Calculo
 
-O calculo e feito pelo servico `FinancingService`, que envia os dados para:
+O calculo real em producao continua sendo feito pelo servico `FinancingService`, que envia os dados para:
 
 `POST /accounts/financing`
+
+Para modernizacao e funcionamento local, foi criada a camada de dominio:
+
+`src/domains/financing`
+
+Essa camada contem funcoes puras de calculo local e testes automatizados. O servico usa essa camada quando o sistema esta em `localhost` sem token real, ou como contingencia em falha local de rede/autorizacao.
+
+Primeiros modelos cobertos por testes:
+
+- Price: prestacao fixa, amortizacao crescente e juros decrescentes.
+- SAC: amortizacao fixa, prestacao decrescente e juros decrescentes.
+- Carencia: parcelas dentro do periodo de carencia mantem amortizacao zerada.
 
 O retorno esperado contem:
 
@@ -49,7 +61,8 @@ A impressao usa `PrintFinancing` e os servicos de impressao em `PrintServices/Fi
 
 ## Pontos para finalizacao
 
-- Validar se o endpoint `/accounts/financing` esta respondendo em ambiente local.
+- Comparar o calculo local de Price e SAC com exemplos homologados do sistema antigo.
+- Implementar e testar as regras especificas de SACRE e Linear.
 - Revisar performance da tabela de parcelas para prazos grandes.
 - Verificar layout responsivo.
 - Verificar mensagens de erro, hoje algumas chamadas usam `alertMessage.error('')`.
