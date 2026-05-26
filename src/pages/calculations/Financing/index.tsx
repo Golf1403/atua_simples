@@ -27,6 +27,17 @@ import { useLoading } from '@/hooks/loading';
 import { useFactors } from '@/hooks/factors';
 import { useCore } from '@/hooks/core';
 import { labelsEnum } from '@/enums/labelsEnum';
+import {
+  Actions,
+  CheckboxField,
+  Container,
+  ContentCard,
+  Field,
+  Form,
+  SummaryCard,
+  SummaryGrid,
+  TableSection,
+} from './styles';
 
 const startData: DataTableCellImp[] = [];
 
@@ -284,132 +295,158 @@ const FormikFinancing = (): JSX.Element => {
   }, []);
 
   return (
-    <Fragment>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="financing-type">{labelsEnum.TYPE}</label>
-          <select id="financing-type" name="type" className="form-control" onChange={onTypeChange} value={values.type}>
-            <option value="" disabled>
-              Selecione...
-            </option>
-            {typeOptions.map(option => (
-              <option key={option.id} value={option.value}>
-                {option.label}
+    <Container>
+      <ContentCard>
+        <Form onSubmit={handleSubmit}>
+          <Field $span={2} className="form-group">
+            <label htmlFor="financing-type">{labelsEnum.TYPE}</label>
+            <select
+              id="financing-type"
+              name="type"
+              className="form-control"
+              onChange={onTypeChange}
+              value={values.type}>
+              <option value="" disabled>
+                Selecione...
               </option>
-            ))}
-          </select>
-        </div>
-        <div className="form-group">
-          <label htmlFor="financing-name">Nome</label>
-          <input
-            type="text"
-            id="financing-name"
-            name="name"
-            className="form-control"
-            onChange={handleChange}
-            value={values.name}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="financing-date">{labelsEnum.DATE}</label>
-          <input
-            type="date"
-            id="financing-date"
-            name="date"
-            className="form-control"
-            min="1994-08-01"
-            onChange={event => _setChangeDate(moment(event.target.value, 'YYYY-MM-DD').toDate())}
-            onKeyDown={datePickerKeyDown}
-            value={moment(values.date).format('YYYY-MM-DD')}
-          />
-        </div>
-        <FormGroupCurrency
-          label={labelsEnum.VALUE}
-          name="value"
-          id="financing-value"
-          onChange={setMoneyField}
-          maxLength={18}
-          value={values.value}
-          error={errors.value}
-        />
-        <div className="form-group">
-          <label htmlFor="financing-deadline">{labelsEnum.DEADLINE}</label>
-          <input
-            type="number"
-            id="financing-deadline"
-            name="deadline"
-            className="form-control"
-            min="0"
-            onChange={handleChange}
-            value={values.deadline}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="financing-grace">{labelsEnum.SHORTAGE}</label>
-          <input
-            type="number"
-            id="financing-grace"
-            name="shortage"
-            className="form-control"
-            min="0"
-            onChange={handleChange}
-            value={values.shortage}
-          />
-        </div>
-        <FormGroupCurrency
-          id="financing-interest"
-          name="interest"
-          label={labelsEnum.INTEREST}
-          onChange={setMoneyField}
-          precision={4}
-          value={values.interest}
-          error={errors.interest}
-        />
-        <label className="form-check">
-          <input
-            id="financing-positive"
-            name="positive"
-            type="checkbox"
-            checked={values.positive}
-            onChange={handleChange}
-          />
-          Percentual negativo
-        </label>
-        {values.type && (
-          <Tooltip indexTooltip={indexTooltipPayload}>
-            <div className="form-group">
-              <label htmlFor="financing-index">Índice</label>
-              <select
-                id="financing-index"
-                name="index"
-                className="form-control"
-                onChange={onIndexChange}
-                value={values.index}>
-                {indexesList.map(option => (
-                  <option key={option.id} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </Tooltip>
-        )}
-        <button type={'submit'}>{labelsEnum.GENERAGE_INSTALLMENT}</button>
-      </form>
+              {typeOptions.map(option => (
+                <option key={option.id} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field $span={4} className="form-group">
+            <label htmlFor="financing-name">Nome</label>
+            <input
+              type="text"
+              id="financing-name"
+              name="name"
+              className="form-control"
+              onChange={handleChange}
+              value={values.name}
+            />
+          </Field>
+          <Field $span={2} className="form-group">
+            <label htmlFor="financing-date">{labelsEnum.DATE}</label>
+            <input
+              type="date"
+              id="financing-date"
+              name="date"
+              className="form-control"
+              min="1994-08-01"
+              onChange={event => _setChangeDate(moment(event.target.value, 'YYYY-MM-DD').toDate())}
+              onKeyDown={datePickerKeyDown}
+              value={moment(values.date).format('YYYY-MM-DD')}
+            />
+          </Field>
+          <Field $span={2}>
+            <FormGroupCurrency
+              label={labelsEnum.VALUE}
+              name="value"
+              id="financing-value"
+              onChange={setMoneyField}
+              maxLength={18}
+              value={values.value}
+              error={errors.value}
+            />
+          </Field>
+          <Field $span={1} className="form-group">
+            <label htmlFor="financing-deadline">{labelsEnum.DEADLINE}</label>
+            <input
+              type="number"
+              id="financing-deadline"
+              name="deadline"
+              className="form-control"
+              min="0"
+              onChange={handleChange}
+              value={values.deadline}
+            />
+          </Field>
+          <Field $span={1} className="form-group">
+            <label htmlFor="financing-grace">{labelsEnum.SHORTAGE}</label>
+            <input
+              type="number"
+              id="financing-grace"
+              name="shortage"
+              className="form-control"
+              min="0"
+              onChange={handleChange}
+              value={values.shortage}
+            />
+          </Field>
+          <Field $span={2}>
+            <FormGroupCurrency
+              id="financing-interest"
+              name="interest"
+              label={labelsEnum.INTEREST}
+              onChange={setMoneyField}
+              precision={4}
+              value={values.interest}
+              error={errors.interest}
+            />
+          </Field>
+          <CheckboxField>
+            <input
+              id="financing-positive"
+              name="positive"
+              type="checkbox"
+              checked={values.positive}
+              onChange={handleChange}
+            />
+            Percentual negativo
+          </CheckboxField>
+          {values.type && (
+            <Tooltip indexTooltip={indexTooltipPayload}>
+              <Field $span={3} className="form-group">
+                <label htmlFor="financing-index">Índice</label>
+                <select
+                  id="financing-index"
+                  name="index"
+                  className="form-control"
+                  onChange={onIndexChange}
+                  value={values.index}>
+                  {indexesList.map(option => (
+                    <option key={option.id} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </Tooltip>
+          )}
+          <Actions>
+            <button type={'submit'}>{labelsEnum.GENERAGE_INSTALLMENT}</button>
+          </Actions>
+        </Form>
+      </ContentCard>
 
-      <Fragment>
+      <TableSection>
         <h2>{labelsEnum.PURCHASE}</h2>
         <DataTable columns={tableColumns} data={tableData} numberOfSkeletons={12} loading={isLoading} />
-        <h2>{labelsEnum.AMORTIZATION}</h2>
-        <p>{!isLoading && convertCurrencyToPtBr(totalData.amortization)}</p>
-        <h2>{labelsEnum.CORRECTION}</h2>
-        <p>{!isLoading && convertCurrencyToPtBr(totalData.correction)}</p>
-        <h2>{labelsEnum.INSTALLMENTS}</h2>
-        <p>{!isLoading && convertCurrencyToPtBr(totalData.installment)}</p>
-        <h2>{labelsEnum.INTEREST}</h2>
-        <p>{!isLoading && convertCurrencyToPtBr(totalData.interest)}</p>
-        <TotalBottomBar total={totalData.installment} />
-      </Fragment>
+      </TableSection>
+
+      <SummaryGrid>
+        <SummaryCard>
+          <h2>{labelsEnum.AMORTIZATION}</h2>
+          <p>{!isLoading && convertCurrencyToPtBr(totalData.amortization)}</p>
+        </SummaryCard>
+        <SummaryCard>
+          <h2>{labelsEnum.CORRECTION}</h2>
+          <p>{!isLoading && convertCurrencyToPtBr(totalData.correction)}</p>
+        </SummaryCard>
+        <SummaryCard>
+          <h2>{labelsEnum.INSTALLMENTS}</h2>
+          <p>{!isLoading && convertCurrencyToPtBr(totalData.installment)}</p>
+        </SummaryCard>
+        <SummaryCard>
+          <h2>{labelsEnum.INTEREST}</h2>
+          <p>{!isLoading && convertCurrencyToPtBr(totalData.interest)}</p>
+        </SummaryCard>
+        <SummaryCard>
+          <TotalBottomBar total={totalData.installment} />
+        </SummaryCard>
+      </SummaryGrid>
 
       <PrintFinancing
         onClose={() => setModalIsOpen(false)}
@@ -422,7 +459,7 @@ const FormikFinancing = (): JSX.Element => {
           },
         }}
       />
-    </Fragment>
+    </Container>
   );
 };
 
