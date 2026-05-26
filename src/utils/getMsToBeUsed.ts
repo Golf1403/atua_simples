@@ -12,6 +12,10 @@ export function getMsToBeUsed(type?: MsTypesImp) {
       return process.env.REACT_APP_DEV_ACCOUNTS_URL;
     case 'calcs':
       return process.env.REACT_APP_DEV_CALCS_URL;
+    case 'automatedUpdate':
+      if (process.env.REACT_APP_DEV_AUTOMATED_UPDATE_URL) return process.env.REACT_APP_DEV_AUTOMATED_UPDATE_URL;
+      if (typeof window !== 'undefined' && window.location.hostname === 'localhost') return 'http://localhost:3003';
+      return `${process.env.REACT_APP_API_BASE_URL}automated-update`;
     case 'licenses':
       return process.env.REACT_APP_DEV_LICENSES_URL;
     case 'plans':
